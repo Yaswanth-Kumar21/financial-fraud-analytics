@@ -1,0 +1,11 @@
+{
+  "total_records": 284807,
+  "total_features": 31,
+  "legitimate_count": 284315,
+  "fraud_count": 492,
+  "fraud_percentage": 0.173,
+  "imbalance_ratio": 577.9,
+  "null_values": 0,
+  "amount_max": 25691.16,
+  "amount_mean": 88.35
+}

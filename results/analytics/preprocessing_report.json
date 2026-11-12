@@ -1,0 +1,13 @@
+{
+  "original_records": 284807,
+  "cleaned_records": 283726,
+  "duplicates_removed": 1081,
+  "null_values_imputed": 0,
+  "features_after_preprocessing": 30,
+  "normalization_applied": [
+    "Time \u2192 Time_norm",
+    "Amount \u2192 Amount_norm"
+  ],
+  "legitimate_count": 283253,
+  "fraud_count": 473
+}
