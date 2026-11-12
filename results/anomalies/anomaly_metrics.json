@@ -1,0 +1,12 @@
+{
+  "model": "Isolation Forest (Scikit-Learn)",
+  "baseline_training_records": 283253,
+  "sample_records_tested": 150000,
+  "anomalies_detected": 373,
+  "accuracy_pct": 99.67,
+  "precision_pct": 17.16,
+  "recall_pct": 25.1,
+  "f1_score_pct": 20.38,
+  "contamination_param": 0.002,
+  "n_estimators": 100
+}

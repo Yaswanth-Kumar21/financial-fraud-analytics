@@ -1,0 +1,26 @@
+{
+  "model": "Random Forest Classifier (PySpark MLlib)",
+  "num_trees": 100,
+  "max_depth": 10,
+  "total_records": 283726,
+  "training_records": 227219,
+  "testing_records": 56507,
+  "feature_count": 30,
+  "accuracy_pct": 99.92,
+  "precision_pct": 99.92,
+  "recall_pct": 99.92,
+  "f1_score_pct": 99.92,
+  "auc_roc": 0.9761,
+  "top_features": [
+    "V14",
+    "V12",
+    "V10",
+    "V4",
+    "V17",
+    "V11",
+    "V3",
+    "V7",
+    "V2",
+    "V16"
+  ]
+}
