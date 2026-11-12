@@ -1,0 +1,13 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+data/creditcard.csv
+data/archive.zip
+results/parquet/
+results/cleaned_data/
+*.zip
+.DS_Store
+derby.log
+metastore_db/
+spark-warehouse/
