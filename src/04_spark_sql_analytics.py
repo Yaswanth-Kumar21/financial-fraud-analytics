@@ -50,7 +50,8 @@ q1 = spark.sql("""
     ORDER BY total_transactions DESC
 """)
 q1.show()
-q1_data = [row.asDict() for row in q1.collect()]
+q1_data = [{k: float(v) if hasattr(v, '__float__') and not isinstance(v, (int, str)) else v
+            for k, v in row.asDict().items()} for row in q1.collect()]
 with open(f"{ANALYTICS}/traffic_summary.json", "w") as f:
     json.dump(q1_data, f, indent=2)
 
@@ -66,7 +67,8 @@ q2 = spark.sql("""
     ORDER BY amount_bucket, fraud_label
 """)
 q2.show()
-q2_data = [row.asDict() for row in q2.collect()]
+q2_data = [{k: float(v) if hasattr(v, '__float__') and not isinstance(v, (int, str)) else v
+            for k, v in row.asDict().items()} for row in q2.collect()]
 with open(f"{ANALYTICS}/amount_distribution.json", "w") as f:
     json.dump(q2_data, f, indent=2)
 
@@ -99,7 +101,8 @@ q4 = spark.sql("""
     GROUP BY fraud_label
 """)
 q4.show(truncate=False)
-q4_data = [row.asDict() for row in q4.collect()]
+q4_data = [{k: float(v) if hasattr(v, '__float__') and not isinstance(v, (int, str)) else v
+            for k, v in row.asDict().items()} for row in q4.collect()]
 with open(f"{ANALYTICS}/feature_averages_by_class.json", "w") as f:
     json.dump(q4_data, f, indent=2)
 

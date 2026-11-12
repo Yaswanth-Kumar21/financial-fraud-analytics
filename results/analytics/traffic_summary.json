@@ -1,0 +1,12 @@
+[
+  {
+    "fraud_label": "LEGITIMATE",
+    "total_transactions": 283253,
+    "percentage": 99.833
+  },
+  {
+    "fraud_label": "FRAUD",
+    "total_transactions": 473,
+    "percentage": 0.167
+  }
+]

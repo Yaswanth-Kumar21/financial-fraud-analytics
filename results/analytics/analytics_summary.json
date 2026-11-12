@@ -1,0 +1,7 @@
+{
+  "total_transactions": 283726,
+  "legitimate_count": 283253,
+  "fraud_count": 473,
+  "fraud_percentage": 0.167,
+  "legitimate_percentage": 99.833
+}

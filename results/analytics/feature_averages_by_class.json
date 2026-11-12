@@ -1,0 +1,20 @@
+[
+  {
+    "fraud_label": "LEGITIMATE",
+    "avg_V1": 0.0134,
+    "avg_V2": -0.0098,
+    "avg_V3": 0.0129,
+    "avg_V4": -0.0104,
+    "avg_V14": 0.0117,
+    "avg_Amount_norm": -0.0002
+  },
+  {
+    "fraud_label": "FRAUD",
+    "avg_V1": -4.4983,
+    "avg_V2": 3.406,
+    "avg_V3": -6.7296,
+    "avg_V4": 4.4726,
+    "avg_V14": -6.8359,
+    "avg_Amount_norm": 0.1414
+  }
+]

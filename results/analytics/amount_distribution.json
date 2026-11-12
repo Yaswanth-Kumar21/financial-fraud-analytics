@@ -1,0 +1,26 @@
+[
+  {
+    "amount_bucket": "HIGH",
+    "fraud_label": "FRAUD",
+    "count": 79,
+    "avg_norm_amount": 1.9348
+  },
+  {
+    "amount_bucket": "HIGH",
+    "fraud_label": "LEGITIMATE",
+    "count": 26908,
+    "avg_norm_amount": 1.9133
+  },
+  {
+    "amount_bucket": "MEDIUM",
+    "fraud_label": "FRAUD",
+    "count": 394,
+    "avg_norm_amount": -0.2182
+  },
+  {
+    "amount_bucket": "MEDIUM",
+    "fraud_label": "LEGITIMATE",
+    "count": 256345,
+    "avg_norm_amount": -0.2011
+  }
+]
