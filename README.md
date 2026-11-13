@@ -186,6 +186,32 @@ financial-fraud-analytics/
 
 ---
 
+## Screenshots
+
+### 01 — Dataset Exploration
+![Dataset Exploration](screenshots/01_dataset_exploration.png)
+> Class distribution (96.5% legitimate vs 3.5% fraud), dataset KPIs, and fraud rate by ProductCD across 590,540 IEEE-CIS transactions.
+
+---
+
+### 02 — Spark SQL Analytics
+![Spark SQL Analytics](screenshots/02_spark_sql_analytics.png)
+> Distributed SQL query results: fraud rate by hour of day (peaks 5–9 AM at 7–10.6%), transaction volume by amount bucket, and overall traffic summary from Apache Spark.
+
+---
+
+### 03 — ML Model Comparison (3 Algorithms)
+![ML Model Comparison](screenshots/03_ml_comparison.png)
+> Side-by-side comparison of all 3 algorithms — Random Forest (F1: 88.75%, AUC: 0.875), Gradient Boosted Trees (F1: 90.56%, AUC: 0.906), and Isolation Forest (Accuracy: 93.95%). GBT outperforms RF on this dataset.
+
+---
+
+### 04 — Anomaly Detection (Isolation Forest)
+![Anomaly Detection](screenshots/04_anomaly_detection.png)
+> Isolation Forest unsupervised anomaly detection: trained on 569,877 legitimate transactions, detected 4,175 anomalies from a 100K sample with 93.95% accuracy.
+
+---
+
 ## References
 
 - Dataset: [IEEE-CIS Fraud Detection — Kaggle](https://www.kaggle.com/competitions/ieee-fraud-detection/data)
