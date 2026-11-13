@@ -1,12 +1,13 @@
 {
   "model": "Isolation Forest (Scikit-Learn)",
-  "baseline_training_records": 283253,
-  "sample_records_tested": 150000,
-  "anomalies_detected": 373,
-  "accuracy_pct": 99.67,
-  "precision_pct": 17.16,
-  "recall_pct": 25.1,
-  "f1_score_pct": 20.38,
-  "contamination_param": 0.002,
+  "algorithm_number": 3,
+  "baseline_training_records": 569877,
+  "sample_records_tested": 100000,
+  "anomalies_detected": 4175,
+  "accuracy_pct": 93.95,
+  "precision_pct": 20.36,
+  "recall_pct": 23.77,
+  "f1_score_pct": 21.93,
+  "contamination_param": 0.035,
   "n_estimators": 100
 }

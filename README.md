@@ -63,29 +63,38 @@ Raw Dataset (IEEE-CIS: train_transaction.csv + train_identity.csv)
 ## ML Algorithms (3)
 
 ### Algorithm 1 — Random Forest Classifier (PySpark MLlib)
-| Metric    | Score  |
-|-----------|--------|
-| Accuracy  | ~98%+  |
-| Precision | ~98%+  |
-| Recall    | ~98%+  |
-| F1 Score  | ~98%+  |
-| AUC-ROC   | ~0.98+ |
+| Metric    | Score   |
+|-----------|---------|
+| Accuracy  | 84.03%  |
+| Precision | 96.00%  |
+| Recall    | 84.03%  |
+| F1 Score  | 88.75%  |
+| AUC-ROC   | 0.8753  |
+| Trees     | 100     |
+| Max Depth | 8       |
 
 ### Algorithm 2 — Gradient Boosted Trees (PySpark MLlib)
-| Metric    | Score  |
-|-----------|--------|
-| Accuracy  | ~98%+  |
-| Precision | ~98%+  |
-| Recall    | ~98%+  |
-| F1 Score  | ~98%+  |
-| AUC-ROC   | ~0.98+ |
+| Metric    | Score   |
+|-----------|---------|
+| Accuracy  | 86.88%  |
+| Precision | 96.30%  |
+| Recall    | 86.88%  |
+| F1 Score  | 90.56%  |
+| AUC-ROC   | 0.9066  |
+| Max Iter  | 50      |
+| Max Depth | 5       |
 
 ### Algorithm 3 — Isolation Forest (Scikit-Learn)
-| Metric             | Value   |
-|--------------------|---------|
+| Metric             | Value    |
+|--------------------|----------|
 | Type               | Unsupervised Anomaly Detection |
-| Baseline (Legit)   | 569,877 |
-| Sample Tested      | 100,000 |
+| Accuracy           | 93.95%   |
+| Precision          | 20.36%   |
+| Recall             | 23.77%   |
+| F1 Score           | 21.93%   |
+| Anomalies Detected | 4,175    |
+| Baseline (Legit)   | 569,877  |
+| Sample Tested      | 100,000  |
 
 ---
 

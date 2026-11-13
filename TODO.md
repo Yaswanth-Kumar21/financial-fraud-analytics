@@ -24,13 +24,13 @@ and upgrade ML to use **3 algorithms** as required by sir.
 
 | # | Script | Status | Notes |
 |---|--------|--------|-------|
-| 1 | `src/01_dataset_exploration.py` | ⬜ TODO | New columns: isFraud, TransactionAmt, card*, id_* etc |
-| 2 | `src/02_data_preprocessing.py` | ⬜ TODO | Join transaction + identity on TransactionID |
-| 3 | `src/03_spark_processing.py`   | ⬜ TODO | Spark ETL on merged dataset → Parquet |
-| 4 | `src/04_spark_sql_analytics.py`| ⬜ TODO | SQL queries on new feature set |
-| 5 | `src/05_fraud_classification.py`| ⬜ TODO | Add **3 ML models**: Random Forest + GBT + Logistic Regression |
-| 6 | `src/06_anomaly_detection.py`  | ⬜ TODO | Isolation Forest on new features |
-| 7 | `src/07_unified_threat_detection.py` | ⬜ TODO | Combine all 3 model outputs + new dashboard |
+| 1 | `src/01_dataset_exploration.py` | ✅ DONE | 590K rows, 434 cols, 3.499% fraud rate |
+| 2 | `src/02_data_preprocessing.py` | ✅ DONE | Merged, 228 cols, 0 nulls after cleaning |
+| 3 | `src/03_spark_processing.py`   | ✅ DONE | Parquet written, 230 cols incl. derived |
+| 4 | `src/04_spark_sql_analytics.py`| ✅ DONE | 6 SQL queries, fraud peaks at hrs 5-9 AM |
+| 5 | `src/05_fraud_classification.py`| ✅ DONE | RF: 84% acc, 88.75% F1 / GBT: 86.88% acc, 90.56% F1 |
+| 6 | `src/06_anomaly_detection.py`  | ✅ DONE | Isolation Forest: 93.95% acc, 4175 anomalies |
+| 7 | `src/07_unified_threat_detection.py` | ✅ DONE | Dashboard with 3-model comparison generated |
 
 ---
 
@@ -47,29 +47,29 @@ and upgrade ML to use **3 algorithms** as required by sir.
 ## 📦 Dependencies to Install
 
 - [x] `kagglehub` — installed
-- [ ] `pyspark==3.5.0`
-- [ ] `pandas>=2.2`
-- [ ] `numpy>=2.0`
-- [ ] `scikit-learn>=1.5`
-- [ ] `matplotlib>=3.8`
-- [ ] `seaborn>=0.13`
+- [x] `pyspark==3.5.0`
+- [x] `pandas>=2.2`
+- [x] `numpy>=2.0`
+- [x] `scikit-learn>=1.5`
+- [x] `matplotlib>=3.8`
+- [x] `seaborn>=0.13`
 
 ---
 
 ## 📂 GitHub Tasks
 
-- [ ] Add GitHub remote URL (share your repo URL)
-- [ ] Update README.md with new dataset info
-- [ ] Push all updated source files
+- [x] Add GitHub remote URL — https://github.com/Yaswanth-Kumar21/financial-fraud-analytics
+- [x] Update README.md with new dataset info
+- [x] Push all updated source files
 - [ ] Update Google Classroom submission link with new dataset reference
 
 ---
 
 ## 📊 Dashboard Updates
 
-- [ ] Show all 3 ML model comparison chart
-- [ ] Update dataset info (IEEE-CIS, 1.3 GB, 590K rows)
-- [ ] Update KPI cards with new fraud stats
+- [x] Show all 3 ML model comparison chart
+- [x] Update dataset info (IEEE-CIS, 1.3 GB, 590K rows)
+- [x] Update KPI cards with new fraud stats
 
 ---
 
