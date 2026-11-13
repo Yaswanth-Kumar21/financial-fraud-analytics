@@ -5,7 +5,13 @@ Student : Abotula Yaswanth Kumar
 Roll No : A23126552191
 Case Study 11.2 - Big Data Analytics Lab
 
-Step 2: Clean, deduplicate, normalize and save the dataset for Spark processing
+Step 2: Data Preprocessing
+        - Join transaction + identity tables
+        - Handle nulls (median/mode imputation)
+        - Encode categoricals
+        - Normalize TransactionAmt
+        - Remove duplicates
+        - Save cleaned CSV for downstream steps
 """
 
 import pandas as pd
@@ -13,77 +19,117 @@ import numpy as np
 import os
 import json
 
-DATA_PATH    = "data/creditcard.csv"
-CLEANED_PATH = "results/cleaned_data"
-RESULTS_PATH = "results/analytics"
-os.makedirs(CLEANED_PATH, exist_ok=True)
+TRANSACTION_CSV  = "ieee-fraud-detection/train_transaction.csv"
+IDENTITY_CSV     = "ieee-fraud-detection/train_identity.csv"
+CLEANED_DIR      = "results/cleaned_data"
+RESULTS_PATH     = "results/analytics"
+os.makedirs(CLEANED_DIR,  exist_ok=True)
 os.makedirs(RESULTS_PATH, exist_ok=True)
 
-print("=" * 60)
+print("=" * 65)
 print("  FINANCIAL FRAUD DETECTION - DATA PREPROCESSING")
 print("  Student : Abotula Yaswanth Kumar | A23126552191")
-print("=" * 60)
+print("=" * 65)
 
-# ── Load ──────────────────────────────────────────────────────
-print("\n[1] Loading raw dataset...")
-df = pd.read_csv(DATA_PATH)
-original_count = len(df)
-print(f"    Records loaded: {original_count:,}")
+# ── Load ───────────────────────────────────────────────────────
+print("\n[1] Loading datasets...")
+txn = pd.read_csv(TRANSACTION_CSV)
+idn = pd.read_csv(IDENTITY_CSV)
+print(f"    Transactions : {len(txn):,} rows × {len(txn.columns)} cols")
+print(f"    Identity     : {len(idn):,} rows × {len(idn.columns)} cols")
 
-# ── Null check ────────────────────────────────────────────────
-print("\n[2] Checking for null values...")
-total_nulls = int(df.isnull().sum().sum())
-if total_nulls == 0:
-    print("    No null values found — dataset is clean.")
-else:
-    df.fillna(df.median(numeric_only=True), inplace=True)
-    print(f"    {total_nulls} nulls imputed with column medians.")
+# ── Merge ──────────────────────────────────────────────────────
+print("\n[2] Merging on TransactionID (LEFT JOIN)...")
+df = txn.merge(idn, on='TransactionID', how='left')
+print(f"    Merged shape : {df.shape}")
+before_rows = len(df)
 
-# ── Deduplication ─────────────────────────────────────────────
-print("\n[3] Removing duplicate rows...")
-dup_count = int(df.duplicated().sum())
-if dup_count > 0:
-    df.drop_duplicates(inplace=True)
-    print(f"    Removed {dup_count:,} duplicates. Remaining: {len(df):,}")
-else:
-    print(f"    No duplicates found.")
+# ── Drop columns with >70% nulls ───────────────────────────────
+print("\n[3] Dropping columns with >70% null values...")
+null_pct    = df.isnull().mean()
+drop_cols   = null_pct[null_pct > 0.70].index.tolist()
+# Always keep target and key identifiers
+keep_always = ['isFraud', 'TransactionID', 'TransactionAmt', 'TransactionDT']
+drop_cols   = [c for c in drop_cols if c not in keep_always]
+df.drop(columns=drop_cols, inplace=True)
+print(f"    Dropped {len(drop_cols)} high-null columns")
+print(f"    Remaining columns: {len(df.columns)}")
 
-# ── Normalization ─────────────────────────────────────────────
-print("\n[4] Normalizing Time and Amount features...")
-df['Amount_norm'] = (df['Amount'] - df['Amount'].mean()) / df['Amount'].std()
-df['Time_norm']   = (df['Time']   - df['Time'].mean())   / df['Time'].std()
-df.drop(columns=['Time', 'Amount'], inplace=True)
-print("    Time  → Time_norm  (z-score normalized)")
-print("    Amount → Amount_norm (z-score normalized)")
+# ── Remove duplicates ──────────────────────────────────────────
+print("\n[4] Removing duplicate rows...")
+df.drop_duplicates(inplace=True)
+after_rows = len(df)
+print(f"    Removed {before_rows - after_rows:,} duplicates")
+print(f"    Remaining rows: {after_rows:,}")
 
-# ── Feature summary ───────────────────────────────────────────
-features = [c for c in df.columns if c != 'Class']
-print(f"\n[5] Total features after preprocessing: {len(features)}")
+# ── Identify column types ──────────────────────────────────────
+cat_cols = df.select_dtypes(include=['object']).columns.tolist()
+num_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+num_cols = [c for c in num_cols if c not in ['isFraud', 'TransactionID']]
+print(f"\n[5] Column types:")
+print(f"    Numeric    : {len(num_cols)} columns")
+print(f"    Categorical: {len(cat_cols)} columns  {cat_cols[:5]}...")
 
-counts = df['Class'].value_counts()
-print(f"\n[6] Final class distribution:")
-print(f"    Legitimate: {counts[0]:,} | Fraud: {counts[1]:,}")
+# ── Fill numeric nulls with median ────────────────────────────
+print("\n[6] Imputing numeric nulls with median...")
+for col in num_cols:
+    if df[col].isnull().any():
+        df[col].fillna(df[col].median(), inplace=True)
 
-# ── Save cleaned CSV ──────────────────────────────────────────
-cleaned_file = f"{CLEANED_PATH}/creditcard_cleaned.csv"
-df.to_csv(cleaned_file, index=False)
-size_mb = os.path.getsize(cleaned_file) / 1e6
-print(f"\n[7] Cleaned data saved → {cleaned_file}  ({size_mb:.2f} MB)")
+# ── Encode categoricals (label encoding) ──────────────────────
+print("\n[7] Label-encoding categorical columns...")
+for col in cat_cols:
+    df[col].fillna('unknown', inplace=True)
+    df[col] = df[col].astype('category').cat.codes
 
-# ── Save report ───────────────────────────────────────────────
+# ── Normalize TransactionAmt ───────────────────────────────────
+print("\n[8] Normalizing TransactionAmt (log1p + z-score)...")
+df['TransactionAmt_log'] = np.log1p(df['TransactionAmt'])
+amt_mean = df['TransactionAmt_log'].mean()
+amt_std  = df['TransactionAmt_log'].std()
+df['TransactionAmt_norm'] = (df['TransactionAmt_log'] - amt_mean) / amt_std
+print(f"    Mean after norm: {df['TransactionAmt_norm'].mean():.4f}")
+print(f"    Std after norm : {df['TransactionAmt_norm'].std():.4f}")
+
+# ── Fill any remaining nulls with 0 ──────────────────────────
+print("\n[9] Filling any remaining nulls with 0...")
+df.fillna(0, inplace=True)
+remaining_nulls = df.isnull().sum().sum()
+print(f"    Final null count: {remaining_nulls}")
+
+# ── Class distribution after cleaning ─────────────────────────
+counts = df['isFraud'].value_counts()
+print(f"\n[10] Final class distribution:")
+print(f"    Legitimate (0) : {counts[0]:,}")
+print(f"    Fraud      (1) : {counts[1]:,}")
+print(f"    Fraud Rate     : {counts[1]/len(df)*100:.3f}%")
+
+# ── Save cleaned data ──────────────────────────────────────────
+print(f"\n[11] Saving cleaned dataset...")
+out_path = f"{CLEANED_DIR}/ieee_fraud_cleaned.csv"
+df.drop(columns=['TransactionID', 'TransactionAmt_log'], errors='ignore').to_csv(out_path, index=False)
+print(f"    Saved → {out_path}")
+print(f"    Final shape: {df.shape}")
+
+# ── Save preprocessing report ─────────────────────────────────
 report = {
-    "original_records"            : original_count,
-    "cleaned_records"             : int(len(df)),
-    "duplicates_removed"          : dup_count,
-    "null_values_imputed"         : total_nulls,
-    "features_after_preprocessing": len(features),
-    "normalization_applied"       : ["Time → Time_norm", "Amount → Amount_norm"],
-    "legitimate_count"            : int(counts[0]),
-    "fraud_count"                 : int(counts[1])
+    "original_transaction_rows": int(len(txn)),
+    "original_identity_rows"   : int(len(idn)),
+    "after_merge_rows"         : int(before_rows),
+    "after_cleaning_rows"      : int(after_rows),
+    "final_columns"            : int(len(df.columns)),
+    "dropped_high_null_cols"   : int(len(drop_cols)),
+    "duplicates_removed"       : int(before_rows - after_rows),
+    "categorical_encoded"      : int(len(cat_cols)),
+    "numeric_imputed"          : int(len(num_cols)),
+    "remaining_nulls"          : int(remaining_nulls),
+    "fraud_count_final"        : int(counts[1]),
+    "legitimate_count_final"   : int(counts[0]),
+    "fraud_rate_pct"           : float(round(counts[1]/len(df)*100, 3)),
 }
 with open(f"{RESULTS_PATH}/preprocessing_report.json", "w") as f:
     json.dump(report, f, indent=2)
 
 print(f"    Report saved → {RESULTS_PATH}/preprocessing_report.json")
-print("\n[DONE] Preprocessing complete.")
-print("=" * 60)
+print("\n[DONE] Data preprocessing complete.")
+print("=" * 65)

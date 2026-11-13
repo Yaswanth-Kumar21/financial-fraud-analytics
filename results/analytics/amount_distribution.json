@@ -1,26 +1,22 @@
-[
-  {
-    "amount_bucket": "HIGH",
-    "fraud_label": "FRAUD",
-    "count": 79,
-    "avg_norm_amount": 1.9348
+{
+  "LOW": {
+    "total": 187515,
+    "fraud": 7480,
+    "fraud_rate_pct": 3.99
   },
-  {
-    "amount_bucket": "HIGH",
-    "fraud_label": "LEGITIMATE",
-    "count": 26908,
-    "avg_norm_amount": 1.9133
+  "MEDIUM": {
+    "total": 378701,
+    "fraud": 12034,
+    "fraud_rate_pct": 3.18
   },
-  {
-    "amount_bucket": "MEDIUM",
-    "fraud_label": "FRAUD",
-    "count": 394,
-    "avg_norm_amount": -0.2182
+  "HIGH": {
+    "total": 24306,
+    "fraud": 1148,
+    "fraud_rate_pct": 4.72
   },
-  {
-    "amount_bucket": "MEDIUM",
-    "fraud_label": "LEGITIMATE",
-    "count": 256345,
-    "avg_norm_amount": -0.2011
+  "VERY_HIGH": {
+    "total": 18,
+    "fraud": 1,
+    "fraud_rate_pct": 5.56
   }
-]
+}

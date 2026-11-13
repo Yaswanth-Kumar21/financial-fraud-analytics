@@ -1,13 +1,15 @@
 {
-  "original_records": 284807,
-  "cleaned_records": 283726,
-  "duplicates_removed": 1081,
-  "null_values_imputed": 0,
-  "features_after_preprocessing": 30,
-  "normalization_applied": [
-    "Time \u2192 Time_norm",
-    "Amount \u2192 Amount_norm"
-  ],
-  "legitimate_count": 283253,
-  "fraud_count": 473
+  "original_transaction_rows": 590540,
+  "original_identity_rows": 144233,
+  "after_merge_rows": 590540,
+  "after_cleaning_rows": 590540,
+  "final_columns": 228,
+  "dropped_high_null_cols": 208,
+  "duplicates_removed": 0,
+  "categorical_encoded": 13,
+  "numeric_imputed": 211,
+  "remaining_nulls": 0,
+  "fraud_count_final": 20663,
+  "legitimate_count_final": 569877,
+  "fraud_rate_pct": 3.499
 }

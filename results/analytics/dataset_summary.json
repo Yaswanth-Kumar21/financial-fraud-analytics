@@ -1,11 +1,17 @@
 {
-  "total_records": 284807,
-  "total_features": 31,
-  "legitimate_count": 284315,
-  "fraud_count": 492,
-  "fraud_percentage": 0.173,
-  "imbalance_ratio": 577.9,
-  "null_values": 0,
-  "amount_max": 25691.16,
-  "amount_mean": 88.35
+  "dataset": "IEEE-CIS Fraud Detection (Vesta Corporation / Kaggle)",
+  "total_records": 590540,
+  "identity_records": 144233,
+  "merged_records": 590540,
+  "total_features": 434,
+  "legitimate_count": 569877,
+  "fraud_count": 20663,
+  "fraud_percentage": 3.499,
+  "legitimate_percentage": 96.501,
+  "imbalance_ratio": 27.6,
+  "null_values_total": 115523073,
+  "amount_max": 31937.39,
+  "amount_mean": 135.03,
+  "amount_median": 68.77,
+  "total_transactions": 590540
 }

@@ -2,8 +2,13 @@ venv/
 __pycache__/
 *.pyc
 *.pyo
+# Old dataset
 data/creditcard.csv
 data/archive.zip
+# IEEE-CIS dataset files (too large for git)
+ieee-fraud-detection/*.csv
+ieee-fraud-detection/
+# Generated artifacts
 results/parquet/
 results/cleaned_data/
 *.zip

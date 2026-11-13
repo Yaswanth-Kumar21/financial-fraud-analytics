@@ -1,7 +1,12 @@
 {
-  "total_transactions": 283726,
-  "legitimate_count": 283253,
-  "fraud_count": 473,
-  "fraud_percentage": 0.167,
-  "legitimate_percentage": 99.833
+  "total_transactions": 590540,
+  "legitimate_count": 569877,
+  "fraud_count": 20663,
+  "fraud_percentage": 3.499,
+  "legitimate_percentage": 96.501,
+  "avg_transaction_amt": 135.03,
+  "total_volume_usd": 79738948.74,
+  "fraud_volume_usd": 3083844.86,
+  "dataset": "IEEE-CIS Fraud Detection (Vesta Corporation)",
+  "source": "https://www.kaggle.com/competitions/ieee-fraud-detection/data"
 }

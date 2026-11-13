@@ -5,8 +5,10 @@ Student : Abotula Yaswanth Kumar
 Roll No : A23126552191
 Case Study 11.2 - Big Data Analytics Lab
 
-Step 4: Distributed Spark SQL analytics - aggregations, fraud patterns,
-        traffic ratios, amount distributions, hourly trends
+Step 4: Spark SQL Analytics
+        - Distributed SQL queries on IEEE-CIS Parquet data
+        - Fraud by product, card type, amount bucket, hour
+        - Save analytics JSON outputs for dashboard
 """
 
 import os
@@ -15,128 +17,174 @@ from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
 PARQUET_PATH = "results/parquet"
-ANALYTICS    = "results/analytics"
-os.makedirs(ANALYTICS, exist_ok=True)
+RESULTS_PATH = "results/analytics"
+os.makedirs(RESULTS_PATH, exist_ok=True)
 
-print("=" * 60)
+print("=" * 65)
 print("  FINANCIAL FRAUD DETECTION - SPARK SQL ANALYTICS")
 print("  Student : Abotula Yaswanth Kumar | A23126552191")
-print("=" * 60)
+print("=" * 65)
 
 # ── Spark Session ─────────────────────────────────────────────
 print("\n[1] Starting Spark session...")
 spark = SparkSession.builder \
-    .appName("FinancialFraudDetection_SQL") \
-    .config("spark.driver.memory", "2g") \
-    .config("spark.sql.shuffle.partitions", "4") \
+    .appName("IEEEFraudDetection_SQL") \
+    .config("spark.driver.memory", "4g") \
+    .config("spark.sql.shuffle.partitions", "8") \
+    .config("spark.sql.adaptive.enabled", "true") \
     .getOrCreate()
 spark.sparkContext.setLogLevel("ERROR")
 
 # ── Load Parquet ──────────────────────────────────────────────
-print("[2] Loading Parquet data...")
+print("\n[2] Loading Parquet data...")
 df = spark.read.parquet(PARQUET_PATH)
 df.createOrReplaceTempView("transactions")
 total = df.count()
-print(f"    Total records loaded: {total:,}")
+print(f"    Loaded {total:,} rows, {len(df.columns)} columns")
 
-# ── Q1: Fraud vs Legitimate distribution ─────────────────────
-print("\n[3] Query 1 — Fraud vs Legitimate distribution:")
+# ── Query 1: Overall traffic summary ─────────────────────────
+print("\n[3] Query 1: Overall traffic summary...")
 q1 = spark.sql("""
-    SELECT fraud_label,
-           COUNT(*)                              AS total_transactions,
-           ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 3) AS percentage
+    SELECT
+        COUNT(*)                                   AS total_transactions,
+        SUM(CASE WHEN Class=0 THEN 1 ELSE 0 END)  AS legitimate,
+        SUM(CASE WHEN Class=1 THEN 1 ELSE 0 END)  AS fraud_cases,
+        ROUND(AVG(TransactionAmt), 2)              AS avg_amount,
+        ROUND(SUM(TransactionAmt), 2)              AS total_volume,
+        ROUND(SUM(CASE WHEN Class=1 THEN TransactionAmt ELSE 0 END), 2) AS fraud_volume,
+        ROUND(SUM(Class) * 100.0 / COUNT(*), 3)   AS fraud_rate_pct
     FROM transactions
-    GROUP BY fraud_label
-    ORDER BY total_transactions DESC
 """)
-q1.show()
-q1_data = [{k: float(v) if hasattr(v, '__float__') and not isinstance(v, (int, str)) else v
-            for k, v in row.asDict().items()} for row in q1.collect()]
-with open(f"{ANALYTICS}/traffic_summary.json", "w") as f:
-    json.dump(q1_data, f, indent=2)
+q1.show(truncate=False)
+q1_row = q1.collect()[0]
 
-# ── Q2: Amount bucket distribution ───────────────────────────
-print("[4] Query 2 — Transaction amount bucket breakdown:")
+traffic_summary = {
+    "total_transactions" : int(q1_row["total_transactions"]),
+    "legitimate_count"   : int(q1_row["legitimate"]),
+    "fraud_count"        : int(q1_row["fraud_cases"]),
+    "avg_transaction_amt": float(q1_row["avg_amount"]),
+    "total_volume_usd"   : float(q1_row["total_volume"]),
+    "fraud_volume_usd"   : float(q1_row["fraud_volume"]),
+    "fraud_rate_pct"     : float(q1_row["fraud_rate_pct"]),
+}
+with open(f"{RESULTS_PATH}/traffic_summary.json", "w") as f:
+    json.dump(traffic_summary, f, indent=2)
+print(f"    Saved → {RESULTS_PATH}/traffic_summary.json")
+
+# ── Query 2: Fraud by product code ───────────────────────────
+print("\n[4] Query 2: Fraud rate by ProductCD...")
 q2 = spark.sql("""
-    SELECT amount_bucket,
-           fraud_label,
-           COUNT(*) AS count,
-           ROUND(AVG(Amount_norm), 4) AS avg_norm_amount
+    SELECT
+        ProductCD,
+        COUNT(*)                              AS total,
+        SUM(Class)                            AS fraud,
+        ROUND(SUM(Class)*100.0/COUNT(*), 2)  AS fraud_rate_pct,
+        ROUND(AVG(TransactionAmt), 2)         AS avg_amount
     FROM transactions
-    GROUP BY amount_bucket, fraud_label
-    ORDER BY amount_bucket, fraud_label
+    GROUP BY ProductCD
+    ORDER BY fraud_rate_pct DESC
 """)
-q2.show()
-q2_data = [{k: float(v) if hasattr(v, '__float__') and not isinstance(v, (int, str)) else v
-            for k, v in row.asDict().items()} for row in q2.collect()]
-with open(f"{ANALYTICS}/amount_distribution.json", "w") as f:
-    json.dump(q2_data, f, indent=2)
+q2.show(truncate=False)
 
-# ── Q3: Top 10 most extreme V1 fraud patterns ────────────────
-print("[5] Query 3 — Top fraud records by V1 feature anomaly:")
+# ── Query 3: Fraud by amount bucket ──────────────────────────
+print("\n[5] Query 3: Fraud by transaction amount bucket...")
 q3 = spark.sql("""
-    SELECT ROUND(V1, 4) AS V1,
-           ROUND(V2, 4) AS V2,
-           ROUND(V3, 4) AS V3,
-           ROUND(Amount_norm, 4) AS Amount_norm,
-           fraud_label
+    SELECT
+        amount_bucket,
+        COUNT(*)                              AS total,
+        SUM(Class)                            AS fraud,
+        ROUND(SUM(Class)*100.0/COUNT(*), 2)  AS fraud_rate_pct
     FROM transactions
-    WHERE fraud_label = 'FRAUD'
-    ORDER BY ABS(V1) DESC
-    LIMIT 10
+    GROUP BY amount_bucket
+    ORDER BY
+        CASE amount_bucket
+            WHEN 'LOW' THEN 1
+            WHEN 'MEDIUM' THEN 2
+            WHEN 'HIGH' THEN 3
+            ELSE 4 END
 """)
 q3.show(truncate=False)
-
-# ── Q4: Feature averages by class ────────────────────────────
-print("[6] Query 4 — Average feature values by class:")
-q4 = spark.sql("""
-    SELECT fraud_label,
-           ROUND(AVG(V1),  4) AS avg_V1,
-           ROUND(AVG(V2),  4) AS avg_V2,
-           ROUND(AVG(V3),  4) AS avg_V3,
-           ROUND(AVG(V4),  4) AS avg_V4,
-           ROUND(AVG(V14), 4) AS avg_V14,
-           ROUND(AVG(Amount_norm), 4) AS avg_Amount_norm
-    FROM transactions
-    GROUP BY fraud_label
-""")
-q4.show(truncate=False)
-q4_data = [{k: float(v) if hasattr(v, '__float__') and not isinstance(v, (int, str)) else v
-            for k, v in row.asDict().items()} for row in q4.collect()]
-with open(f"{ANALYTICS}/feature_averages_by_class.json", "w") as f:
-    json.dump(q4_data, f, indent=2)
-
-# ── Q5: Time-based fraud frequency (binned) ──────────────────
-print("[7] Query 5 — Fraud frequency by time bin:")
-q5 = spark.sql("""
-    SELECT CAST(FLOOR(Time_norm * 10) AS INT) AS time_bin,
-           SUM(CASE WHEN Class=1 THEN 1 ELSE 0 END) AS fraud_count,
-           SUM(CASE WHEN Class=0 THEN 1 ELSE 0 END) AS legit_count
-    FROM transactions
-    GROUP BY time_bin
-    ORDER BY time_bin
-    LIMIT 15
-""")
-q5.show()
-
-# ── Summary stats ─────────────────────────────────────────────
-fraud_count = df.filter(F.col("Class") == 1).count()
-legit_count = df.filter(F.col("Class") == 0).count()
-
-analytics_summary = {
-    "total_transactions"   : total,
-    "legitimate_count"     : legit_count,
-    "fraud_count"          : fraud_count,
-    "fraud_percentage"     : round(fraud_count / total * 100, 3),
-    "legitimate_percentage": round(legit_count / total * 100, 3)
+q3_rows = q3.collect()
+amount_dist = {
+    r["amount_bucket"]: {
+        "total": int(r["total"]),
+        "fraud": int(r["fraud"]),
+        "fraud_rate_pct": float(r["fraud_rate_pct"])
+    }
+    for r in q3_rows
 }
-with open(f"{ANALYTICS}/analytics_summary.json", "w") as f:
-    json.dump(analytics_summary, f, indent=2)
+with open(f"{RESULTS_PATH}/amount_distribution.json", "w") as f:
+    json.dump(amount_dist, f, indent=2)
+print(f"    Saved → {RESULTS_PATH}/amount_distribution.json")
 
-print(f"\n[8] Analytics results saved to {ANALYTICS}/")
-print(f"    Total: {total:,} | Legitimate: {legit_count:,} | Fraud: {fraud_count:,}")
-print(f"    Fraud rate: {fraud_count/total*100:.3f}%")
+# ── Query 4: Fraud by hour of day ────────────────────────────
+print("\n[6] Query 4: Fraud pattern by hour of day...")
+q4 = spark.sql("""
+    SELECT
+        hour_of_day,
+        COUNT(*)           AS total,
+        SUM(Class)         AS fraud,
+        ROUND(SUM(Class)*100.0/COUNT(*), 2) AS fraud_rate_pct
+    FROM transactions
+    GROUP BY hour_of_day
+    ORDER BY hour_of_day
+""")
+q4.show(24, truncate=False)
+
+# ── Query 5: Feature averages by class ───────────────────────
+print("\n[7] Query 5: Feature averages by fraud class...")
+q5 = spark.sql("""
+    SELECT
+        Class,
+        ROUND(AVG(TransactionAmt), 2)      AS avg_amount,
+        ROUND(AVG(TransactionAmt_norm), 4) AS avg_amount_norm,
+        COUNT(*)                           AS count
+    FROM transactions
+    GROUP BY Class
+    ORDER BY Class
+""")
+q5.show(truncate=False)
+q5_rows = q5.collect()
+feat_avgs = {
+    str(int(r["Class"])): {
+        "avg_amount"      : float(r["avg_amount"]),
+        "avg_amount_norm" : float(r["avg_amount_norm"]),
+        "count"           : int(r["count"]),
+    }
+    for r in q5_rows
+}
+with open(f"{RESULTS_PATH}/feature_averages_by_class.json", "w") as f:
+    json.dump(feat_avgs, f, indent=2)
+print(f"    Saved → {RESULTS_PATH}/feature_averages_by_class.json")
+
+# ── Query 6: Top fraud hours ──────────────────────────────────
+print("\n[8] Query 6: Top 5 fraud-heavy hours...")
+q6 = spark.sql("""
+    SELECT hour_of_day, SUM(Class) AS fraud_count
+    FROM transactions
+    GROUP BY hour_of_day
+    ORDER BY fraud_count DESC
+    LIMIT 5
+""")
+q6.show(truncate=False)
+
+# ── Save combined analytics summary ───────────────────────────
+analytics_summary = {
+    "total_transactions"    : traffic_summary["total_transactions"],
+    "legitimate_count"      : traffic_summary["legitimate_count"],
+    "fraud_count"           : traffic_summary["fraud_count"],
+    "fraud_percentage"      : traffic_summary["fraud_rate_pct"],
+    "legitimate_percentage" : round(100 - traffic_summary["fraud_rate_pct"], 3),
+    "avg_transaction_amt"   : traffic_summary["avg_transaction_amt"],
+    "total_volume_usd"      : traffic_summary["total_volume_usd"],
+    "fraud_volume_usd"      : traffic_summary["fraud_volume_usd"],
+    "dataset"               : "IEEE-CIS Fraud Detection (Vesta Corporation)",
+    "source"                : "https://www.kaggle.com/competitions/ieee-fraud-detection/data",
+}
+with open(f"{RESULTS_PATH}/analytics_summary.json", "w") as f:
+    json.dump(analytics_summary, f, indent=2)
+print(f"\n    Analytics summary saved → {RESULTS_PATH}/analytics_summary.json")
 
 spark.stop()
 print("\n[DONE] Spark SQL analytics complete.")
-print("=" * 60)
+print("=" * 65)

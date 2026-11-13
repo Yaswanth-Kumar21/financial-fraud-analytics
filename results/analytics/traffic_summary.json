@@ -1,12 +1,9 @@
-[
-  {
-    "fraud_label": "LEGITIMATE",
-    "total_transactions": 283253,
-    "percentage": 99.833
-  },
-  {
-    "fraud_label": "FRAUD",
-    "total_transactions": 473,
-    "percentage": 0.167
-  }
-]
+{
+  "total_transactions": 590540,
+  "legitimate_count": 569877,
+  "fraud_count": 20663,
+  "avg_transaction_amt": 135.03,
+  "total_volume_usd": 79738948.74,
+  "fraud_volume_usd": 3083844.86,
+  "fraud_rate_pct": 3.499
+}
